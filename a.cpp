@@ -1,97 +1,87 @@
 #include <iostream>
-#include <iomanip>
 #include <stdexcept>
-#include <vector>
-// TODO: implemente aqui as classes TemperatureSensor, Fan e OnOffController
-// seguindo a especificação do enunciado.
 using namespace std;
 
-class sensor;
+class TemperatureSensor {
 private:
-double temp;
-public:    
-    sensor(){
-        temp=(25.0,0.0);
+    double tempC_;
+    double offset_;
+
+public:
+    TemperatureSensor(double startC = 25.0, double offset = 0.0)
+        : tempC_(startC), offset_(0.0) {
+        setOffset(offset);
+    }
+
+    double readC() const {
+        return tempC_ + offset_;
+    }
+
+    void setOffset(double off) {
+        if (off < -2.0 || off > 2.0) {
+            throw invalid_argument("Offset fora do intervalo [-2, 2]");
         }
+        offset_ = off;
+    }
 
+    double offset() const {
+        return offset_;
+    }
 
-       sensor(double temperaturainicial){
-            if(temperaturainicial>-50 || temperaturainicial<100)
-            this invalid("temperatura inicial invalida");
-            temp= temperaturainicial;
-            
-       }
-       double gettemp()const{
-            return temp;
+    void drift(double delta) {
+        tempC_ += delta;
+    }
 
-       } 
-       void settemp(double novatemp){
-       temp=novatemp;
+    void clamp(double minC, double maxC) {
+        if (tempC_ < minC) tempC_ = minC;
+        else if (tempC_ > maxC) tempC_ = maxC;
+    }
+};
 
-       }
-       class vent;
-       private:
-       bool ligado;
-       public:
-       vent(){
-        on=false;
-        vent(bool estadoi)
-        ligado= estadoi;
+class Fan {
+private:
+    bool on_;
+    double coolingRateCps_;
+
+public:
+    Fan(double coolingRateCps = 0.3) : on_(false) {
+        if (coolingRateCps <= 0) {
+            throw invalid_argument("Cooling rate deve ser maior que 0");
         }
-        void on(){
-        on= true;
-        cout << "ventilador ligado."<<end1;}
-        
-        void off(){
-            off=true;
-            cout<< "ventilador desligado."<< end1;
+        coolingRateCps_ = coolingRateCps;
+    }
 
-        }
-            bool ison()const{
-                return on;
-            }
+    void turnOn() {
+        on_ = true;
+        cout << "Ventilador ligado." << endl;
+    }
 
-       
+    void turnOff() {
+        on_ = false;
+        cout << "Ventilador desligado." << endl;
+    }
 
+    bool isOn() const {
+        return on_;
+    }
 
+    double coolingEffect() const {
+        return on_ ? -coolingRateCps_ : 0.0;
+    }
+};
 
-
-
-
-
-
-// ---------------- Simulação ----------------
 int main() {
     try {
-        // Configuração inicial da simulação
-        TemperatureSensor sensor(27.0, 0.0); // começa levemente quente
-        Fan fan(0.4);                        // resfriamento de 0.4 °C/s quando ON
-        OnOffController ctrl(24.0, 26.0);    // histerese: desliga <24, liga >26
+        TemperatureSensor sensor;
+        Fan fan;
 
-        std::cout << std::fixed << std::setprecision(2);
+        cout << "Temperatura inicial: " << sensor.readC() << " °C" << endl;
+        fan.turnOn();
+        cout << "Cooling effect: " << fan.coolingEffect() << " °C/s" << endl;
 
-        // Simula 30 "segundos"
-        for (int t = 0; t < 30; ++t) {
-            // Tendência natural do gabinete: aquece +0.10 °C/s
-            sensor.drift(+0.10);
-
-            // Controlador decide ligar/desligar baseado na LEITURA (com offset)
-            ctrl.control(sensor, fan);
-
-            // Se o ventilador estiver ligado, ele resfria
-            sensor.drift(fan.coolingEffect());
-
-            // Mantém dentro de limites físicos
-            sensor.clamp(0.0, 60.0);
-
-            std::cout << "t=" << t << "s"
-                      << " | T=" << sensor.readC() << " °C"
-                      << " | Fan=" << (fan.isOn() ? "ON" : "OFF")
-                      << "\n";
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Erro: " << e.what() << "\n";
-        return 1;
+    } catch (const invalid_argument& e) {
+        cerr << "Erro: " << e.what() << endl;
     }
+
     return 0;
 }
