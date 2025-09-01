@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <iomanip>
-#include <using namespace.s
+
 
 // ---------------- TemperatureSensor ----------------
 class TemperatureSensor {
@@ -135,4 +135,5 @@ int main() {
     }
     return 0;
 }
+
 
