@@ -33,7 +33,7 @@ public:
         return offset_;
     }
 
-    // Simula variação de temperatura
+    // verifica a  temperatura
     void drift(double delta) {
         tempC_ += delta;
     }
@@ -135,3 +135,4 @@ int main() {
     }
     return 0;
 }
+
